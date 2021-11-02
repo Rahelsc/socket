@@ -3,7 +3,6 @@ const io = require("socket.io")(8900, {
 });
 
 let users = [];
-let counters = {}
 
 // check if user already exists in user array so there won't be duplicates
 const addUser = (userId, socketId) => {

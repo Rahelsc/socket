@@ -9,6 +9,23 @@ const io = require("socket.io")(http, {
   },
 });
 
+let users = [];
+
+// check if user already exists in user array so there won't be duplicates
+const addUser = (user) => {
+  !users.some((u) => u._id === user._id) &&
+    users.push({
+      _id: user._id,
+      username: user.username,
+      profilePicture: user.profilePicture,
+    });
+};
+
+// removing user
+const removeUser = (user) => {
+  users = users.filter((u) => u._id !== user._id);
+};
+
 // middleware for authentication
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
@@ -29,9 +46,13 @@ io.use(async (socket, next) => {
 io.on("connection", (socket) => {
   console.log("a user connected");
   socket.join(socket.user._id);
+  addUser(socket.user);
+  io.emit("getUsers", users);
 
   socket.on("disconnect", () => {
     console.log("a user disconnected");
+    removeUser(socket.user);
+    io.emit("getUsers", users);
   });
 
   socket.on("my message", (msg) => {
@@ -59,19 +80,6 @@ http.listen(process.env.SERVER_PORT, () => {
 // const io = require("socket.io")(8900, {
 //   cors: { origin: "http://localhost:3000", method: ["GET", "POST"] },
 // });
-
-// let users = [];
-
-// // check if user already exists in user array so there won't be duplicates
-// const addUser = (userId, socketId) => {
-//   !users.some((user) => user._id === userId) &&
-//     users.push({ userId, socketId });
-// };
-
-// // removing user
-// const removeUser = (socketId) => {
-//   users = users.filter((user) => user.socketId !== socketId);
-// };
 
 // // find specific user to send a message to
 // const getUser = (userId) => {
